@@ -18,6 +18,8 @@ pub struct Session {
     pub time_stamp: i64,
     /// The user id as it is stored on the database.
     pub id: i32,
+    /// The username.
+    pub username: String,
     /// The user email.
     pub email: String,
     /// A random authentication token key.

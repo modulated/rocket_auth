@@ -7,8 +7,11 @@ pub enum Error {
     #[error("That is not a valid email address.")]
     InvalidEmailAddressError,
 
-    /// This error only occurs if the application panics while holding a locked mutex.
-    #[cfg(feature = "sqlx-sqlite")]
+    /// This error occurs when attempting to create a user with an invalid username.
+    #[error("That is not a valid username.")]
+    InvalidUsernameError,
+
+    /// This error only occurs if the application panics while holding a locked mutex. 
     #[error("The mutex guarding the Sqlite connection was poisoned.")]
     MutexPoisonError,
 
@@ -24,13 +27,16 @@ pub enum Error {
     #[error("UnauthenticatedError: The operation failed because the client is not authenticated.")]
     UnauthenticatedError,
     /// This error occurs when a user tries to log in, but their account doesn't exist.
-    #[error("The email \"{0}\" is not registered. Try signing up first.")]
-    EmailDoesNotExist(String),
-    /// This error is thrown when a user tries to sign up with an email that already exists.
+    #[error("The username \"{0}\" is not registered. Try signing up first.")]
+    UsernameDoesNotExist(String),
+    /// This error is thrown when a user tries to sign up with an username that already exists.
+    #[error("That username already exists. Try logging in.")]
+    UsernameAlreadyExists,
+    /// This error is thrown when a user tries to sign up with an email address that already exists.
     #[error("That email address already exists. Try logging in.")]
-    EmailAlreadyExists,
+    EmailAddressAlreadyExists,
     /// This error occurs when the user does exist, but their password was incorrect.
-    #[error("Incorrect email or password")]
+    #[error("Incorrect username or password.")]
     UnauthorizedError,
 
     /// A wrapper around [`validator::ValidationError`].
@@ -42,17 +48,11 @@ pub enum Error {
     FormValidationErrors(#[from] validator::ValidationErrors),
 
     /// A wrapper around [`sqlx::Error`].
-    #[cfg(any(feature = "sqlx"))]
     #[error("SqlxError: {0}")]
     SqlxError(#[from] sqlx::Error),
     /// A wrapper around [`argon2::Error`].
     #[error("Argon2ParsingError: {0}")]
     Argon2ParsingError(#[from] argon2::Error),
-
-    /// A wrapper around [`rusqlite::Error`].
-    #[cfg(feature = "rusqlite")]
-    #[error("RusqliteError: {0}")]
-    RusqliteError(#[from] rusqlite::Error),
 
     /// A wrapper around [`redis::RedisError`].
     #[cfg(feature = "redis")]
@@ -66,18 +66,11 @@ pub enum Error {
     /// A wrapper around [`std::io::Error`].
     #[cfg(feature = "sqlx-postgres")]
     #[error("IOError: {0}")]
-    IOError(#[from] std::io::Error),
-
-    /// A wrapper around [`tokio_postgres::Error`].
-    #[cfg(feature = "tokio-postgres")]
-    #[error("TokioPostgresError: {0}")]
-    TokioPostgresError(#[from] tokio_postgres::Error),
+    IOError(#[from] std::io::Error)
 }
 
 /*****  CONVERSIONS  *****/
-#[cfg(feature = "sqlx-sqlite")]
 use std::sync::PoisonError;
-#[cfg(feature = "sqlx-sqlite")]
 impl<T> From<PoisonError<T>> for Error {
     fn from(_error: PoisonError<T>) -> Error {
         Error::MutexPoisonError
@@ -89,7 +82,7 @@ impl Error {
     fn message(&self) -> String {
         match self {
             InvalidEmailAddressError
-            | EmailAlreadyExists
+            | UsernameAlreadyExists
             | UnauthorizedError
             | UserNotFoundError => format!("{}", self),
             FormValidationErrors(source) => {
@@ -106,7 +99,7 @@ impl Error {
                     .fold(String::new(), |a, b| a + &b)
             }
             #[cfg(debug_assertions)]
-            e => return format!("{}", e),
+            e => format!("{}", e),
             #[allow(unreachable_patterns)]
             _ => "undefined".into(),
         }

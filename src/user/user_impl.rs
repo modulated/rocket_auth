@@ -62,11 +62,25 @@ impl User {
     /// # use rocket_auth::{Error, User};
     /// #[get("/show-my-email")]
     /// fn show_my_email(user: User) -> String {
-    ///     format!("Your user_id is: {}", user.email())
+    ///     format!("Your email is: {}", user.email())
     /// }
     /// ```
     pub fn email(&self) -> &str {
         &self.email
+    }
+
+    /// This is an accessor field for the private `username` field.
+    /// This field is private so a username cannot be updated without checking whether it is valid.
+    /// ```rust
+    /// # use rocket::{State, get};
+    /// # use rocket_auth::{Error, User};
+    /// #[get("/show-my-username")]
+    /// fn show_my_username(user: User) -> String {
+    ///     format!("Your username is: {}", user.username())
+    /// }
+    /// ```
+    pub fn username(&self) -> &str {
+        &self.username
     }
 
     /// This functions allows to easily modify the email of a user.
@@ -87,6 +101,29 @@ impl User {
     pub fn set_email(&mut self, email: &str) {
         if validator::validate_email(email) {
             self.email = email.to_lowercase();
+        } else {
+            throw!(Error::InvalidEmailAddressError)
+        }
+    }
+
+    /// This functions allows to easily modify the username of a user.
+    /// In case the input is not a valid username, it will return an error.
+    /// In case the user corresponds to the authenticated client, it's easier to use [`Auth::change_email`].
+    /// ```rust
+    /// # use rocket::{State, get};
+    /// # use rocket_auth::{Error, Auth};
+    /// #[get("/set-username/<username>")]
+    /// async fn set_username(username: String, auth: Auth<'_>) -> Result<String, Error> {
+    ///     let mut user = auth.get_user().await.unwrap();
+    ///     user.set_username(&username)?;
+    ///     auth.users.modify(&user).await?;
+    ///     Ok("Your user username was changed".into())
+    /// }
+    /// ```
+    #[throws(Error)]
+    pub fn set_username(&mut self, username: &str) {
+        if validator::validate_length(username, Some(4), Some(32), None) {
+            self.username = username.to_lowercase();
         } else {
             throw!(Error::InvalidEmailAddressError)
         }

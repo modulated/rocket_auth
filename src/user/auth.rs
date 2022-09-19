@@ -90,9 +90,10 @@ impl<'a> Auth<'a> {
     #[throws(Error)]
     pub async fn login(&self, form: &Login) {
         let key = self.users.login(form).await?;
-        let user = self.users.get_by_email(&form.email.to_lowercase()).await?;
+        let user = self.users.get_by_username(&form.username.to_lowercase()).await?;
         let session = Session {
             id: user.id,
+            username: user.username,
             email: user.email,
             auth_key: key,
             time_stamp: now(),
@@ -115,10 +116,11 @@ impl<'a> Auth<'a> {
     #[throws(Error)]
     pub async fn login_for(&self, form: &Login, time: Duration) {
         let key = self.users.login_for(form, time).await?;
-        let user = self.users.get_by_email(&form.email.to_lowercase()).await?;
+        let user = self.users.get_by_username(&form.username.to_lowercase()).await?;
 
         let session = Session {
             id: user.id,
+            username: user.username,
             email: user.email,
             auth_key: key,
             time_stamp: now(),

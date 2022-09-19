@@ -1,11 +1,10 @@
 use crate::prelude::*;
 
-
 /// The `Login` form is used along with the [`Auth`] guard to authenticate users.
 #[derive(FromForm, Deserialize, Clone, Hash, PartialEq, Eq, Validate)]
 pub struct Login {
     #[validate(email)]
-    pub email: String,
+    pub username: String,
     pub(crate) password: String,
 }
 
@@ -14,6 +13,7 @@ pub struct Login {
 pub struct Signup {
     #[validate(email)]
     pub email: String,
+    pub username: String,
     #[validate(
         custom = "is_long",
         custom = "has_number",
@@ -26,8 +26,9 @@ impl Debug for Signup {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Signup {{ email: {:?}, password: \"*****\" }}",
-            self.email
+            "Signup {{ email: {:?}, username: {:?}, password: \"*****\" }}",
+            self.email,
+            self.username
         )
     }
 }
@@ -35,25 +36,16 @@ impl Debug for Login {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "Signup {{ email: {:?}, password: \"*****\" }}",
-            self.email
+            "Signup {{ username: {:?}, password: \"*****\" }}",
+            self.username
         )
     }
 }
 
 impl From<Signup> for Login {
     fn from(form: Signup) -> Login {
-        Login {
-            email: form.email,
-            password: form.password,
-        }
-    }
-}
-
-impl From<Login> for Signup {
-    fn from(form: Login) -> Signup {
-        Self {
-            email: form.email,
+        Login { 
+            username: form.username,
             password: form.password,
         }
     }
@@ -62,7 +54,7 @@ impl From<Login> for Signup {
 impl<T: Deref<Target = Signup>> From<T> for Login {
     fn from(form: T) -> Login {
         Login {
-            email: form.email.clone(),
+            username: form.username.clone(),
             password: form.password.clone(),
         }
     }

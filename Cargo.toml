@@ -16,18 +16,6 @@ keywords = ["rocket", "users", "authentication", "auth", "session"]
 [package.metadata.docs.rs]
 all-features = true
 
-
-[features]
-sqlx-sqlite = ["sqlx/sqlite"]
-sqlx-postgres = ["sqlx/postgres"]
-sqlx-mysql = ["sqlx/mysql"]
-
-
-[dependencies.rusqlite]
-version = "0.27.0"
-optional = true
-
-
 [dependencies]
 rand = "0.8.5"
 rust-argon2 = "1.0.0"
@@ -42,11 +30,9 @@ chrono = "0.4.19"
 validator = { version = "0.15.0", features = ["derive"] }
 futures= "0.3.21"
 
-
 [dependencies.sqlx]
 version = "0.6.0"
-optional = true
-
+features = ["runtime-tokio-rustls", "sqlite"]
 
 [dependencies.rocket]
 version = "0.5.0-rc.2"
@@ -55,10 +41,6 @@ features = ["secrets"]
 [dependencies.serde]
 version = "1.0.138"
 features = ["derive"]
-
-[dependencies.tokio-postgres]
-version = "0.7.6"
-optional = true
 
 
 [dependencies.redis]
@@ -69,36 +51,3 @@ optional = true
 [dependencies.tokio]
 version = "1.19.2"
 features = ["rt", "rt-multi-thread"]
-
-[dev-dependencies]
-tokio-postgres= "0.7.6"
-
-
-[dev-dependencies.rocket]
-version = "0.5.0-rc.2"
-features = ["secrets", "json"]
-
-[dev-dependencies.redis]
-version = "0.21.5"
-features = ["aio", "tokio-comp"]
-
-
-[dev-dependencies.rocket_dyn_templates]
-version = "0.1.0-rc.2"
-features = ["tera"]
-
-
-[dev-dependencies.sqlx]
-version = "0.6.0"
-features = ["runtime-tokio-rustls"]
-
-[dev-dependencies.rocket_auth]
-path = "../rocket_auth"
-features = [
-    "sqlx-sqlite",
-    "sqlx-postgres",
-    "sqlx-mysql",
-    "redis",
-    "tokio-postgres",
-    "rusqlite",
-]

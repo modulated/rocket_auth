@@ -143,9 +143,6 @@ pub mod prelude;
 mod session;
 mod user;
 
-#[cfg(test)]
-mod tests;
-
 use std::fmt::Debug;
 
 pub use prelude::*;
@@ -166,11 +163,11 @@ pub use error::Error;
 /// }
 /// # fn main() {}
 /// ```
-#[cfg_attr(feature = "sqlx", derive(sqlx::FromRow))]
-#[derive(Serialize, Deserialize, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
+#[derive(sqlx::FromRow, Serialize, Deserialize, PartialEq, Eq, Clone, Hash, PartialOrd, Ord)]
 pub struct User {
     pub id: i32,
     email: String,
+    username: String,
     pub is_admin: bool,
     #[serde(skip_serializing)]
     password: String,
